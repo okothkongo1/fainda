@@ -1,0 +1,51 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:2.6.3-node-browsers
+        environment: 
+          BUNDLER_VERSION: 2.0.1
+          PGHOST: localhost
+          PGUSER: fainda-rails-app
+          RAILS_ENV: test
+      - image: postgres:10.7-alpine
+
+        environment:
+          POSTGRES_USER: fainda-rails-app
+          POSTGRES_DB: fainda-rails-app_test
+          POSTGRES_PASSWORD: ""
+    steps:
+      - checkout
+        # Restore Cached Dependencies
+      - type: cache-restore
+        name: Restore bundle cache
+        key: fainda-rails-app-{{ checksum "Gemfile.lock" }}
+      # Bundle install dependencies
+      - run:
+          name: install dependencies
+          command: |
+            sudo gem update --system
+            sudo gem uninstall bundler
+            sudo rm /usr/local/bin/bundle
+            sudo gem install bundler
+            bundle install --path vendor/bundle
+
+      - run: sudo apt install -y postgresql-client || true
+        # Cache Dependencies
+      - type: cache-save
+        name: Store bundle cache
+        key: fainda-rails-app-{{ checksum "Gemfile.lock" }}
+        paths: 
+          - vendor/bundle
+      # Wait for DB
+      - run: dockerize -wait tcp://localhost:5432 -timeout 1m      
+      # Setup the database
+      - run: bundle exec rake db:setup      
+      #run tests
+
+      - run:  bundle exec rspec 
+      - run:  bundle exec cucumber
+
+
+
+

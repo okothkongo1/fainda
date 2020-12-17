@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+  database:
+    image: postgres:10.7-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  fainda:
+    build: .
+    image: fainda
+    environment:
+      POSTGRES_HOST: "locahost"
+      POSTGRES_USERNAME: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    command: bin/rails server --port 3000 --binding 0.0.0.0
+    depends_on:
+      - database
+
+volumes:
+  pgdata:

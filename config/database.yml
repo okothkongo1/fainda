@@ -24,6 +24,10 @@ default: &default
 development:
   <<: *default
   database: fainda_development
+  username: postgres
+  password: postgres
+  host: localhost
+  min_messages: WARNING
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
